@@ -212,6 +212,7 @@
   .t-mint { --tape: linear-gradient(120deg, rgba(168,224,196,.8), rgba(212,240,226,.8)); --tr: 4deg; }
   .t-sun  { --tape: linear-gradient(120deg, rgba(255,214,150,.85), rgba(255,236,196,.85)); --tr: -3deg; }
   .t-lilac{ --tape: linear-gradient(120deg, rgba(206,186,240,.8), rgba(230,218,248,.8)); --tr: 5deg; }
+  .t-night{ --tape: linear-gradient(120deg, rgba(150,160,220,.8), rgba(196,206,244,.8)); --tr: -4deg; }
 
   /* ---------- 滚动入场 ---------- */
   .reveal { opacity: 0; transform: translateY(28px); }
@@ -308,12 +309,58 @@
     color: #c48ba0;
     letter-spacing: .2em;
   }
+  .credit {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #cba6b3;
+    letter-spacing: .05em;
+  }
+
+  /* ---------- 背景音乐按钮 ---------- */
+  .music-btn {
+    position: fixed;
+    right: 22px; bottom: 26px;
+    width: 58px; height: 58px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff8fab, #e91e63);
+    color: #fff;
+    font-size: 25px;
+    cursor: pointer;
+    z-index: 90;
+    box-shadow: 0 10px 26px rgba(233, 30, 99, .38);
+  }
+  .music-btn:hover { transform: scale(1.1); }
+  .music-btn.playing { animation: discSpin 7s linear infinite; }
+  .music-btn:not(.playing)::after {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border: 2px dashed rgba(233, 30, 99, .45);
+    border-radius: 50%;
+  }
+  @keyframes discSpin { to { transform: rotate(360deg); } }
+  .music-tip {
+    position: fixed;
+    right: 92px; bottom: 42px;
+    font-size: 13px;
+    color: #b0577a;
+    background: rgba(255, 255, 255, .9);
+    border: 1px solid #ffd0dd;
+    border-radius: 999px;
+    padding: 6px 14px;
+    z-index: 90;
+    box-shadow: 0 4px 14px rgba(233, 30, 99, .12);
+    animation: tipFade 1s ease 7s both;
+  }
+  @keyframes tipFade { to { opacity: 0; visibility: hidden; } }
 
   /* ---------- 手机适配 ---------- */
   @media (max-width: 759px) {
     .grid3 { grid-template-columns: 1fr; gap: 44px; justify-items: center; }
     .grid3 .polaroid { width: min(360px, 92vw); }
     .hero-eyebrow { letter-spacing: .3em; text-indent: .3em; }
+    .music-tip { right: auto; left: 50%; transform: translateX(-50%); bottom: 96px; }
   }
 </style>
 </head>
@@ -327,10 +374,10 @@
 <header class="hero">
   <p class="hero-eyebrow">LOVE DIARY · 二人份的日常</p>
   <h1>我们的恋爱日常</h1>
-  <p class="hero-sub">泳池 · 干饭 · 散步 · 车窗 —— 都是和你有关的小事</p>
+  <p class="hero-sub">泳池 · 干饭 · 散步 · 车窗 · 深夜 —— 都是和你有关的小事</p>
   <div class="hero-stats">
-    <span class="pill">日常碎片 <b>× 8</b></span>
-    <span class="pill">心动章节 <b>× 4</b></span>
+    <span class="pill">日常碎片 <b>× 9</b></span>
+    <span class="pill">心动章节 <b>× 5</b></span>
     <span class="pill">想你次数 <b>∞</b></span>
   </div>
   <div class="heart-divider">❤ ❤ ❤</div>
@@ -414,6 +461,21 @@
     </div>
   </section>
 
+  <!-- 章节 5 · 深夜贴贴 -->
+  <section class="chapter">
+    <div class="chapter-head reveal">
+      <span class="chapter-num">05</span>
+      <h2>深夜贴贴</h2>
+      <p class="chapter-sub">灯再暗，也一眼认出你</p>
+    </div>
+    <div class="single-row">
+      <figure class="polaroid reveal t-night" style="--r:-1.5deg">
+        <img src="0defc27de8986e9b191889d79e1a8616.jpg" alt="深夜贴贴自拍" style="filter: brightness(1.5) saturate(1.05);" data-cap="再暗的光，也挡不住想靠近的心 💫">
+        <figcaption class="cap">再暗的光，也挡不住想靠近的心 💫</figcaption>
+      </figure>
+    </div>
+  </section>
+
 </main>
 
 <footer>
@@ -421,6 +483,7 @@
   <p class="footer-note">这本小相册诞生于 2026.10.27，下一页正在路上</p>
   <button class="heart-btn" id="heartBtn" aria-label="撒糖">❤</button>
   <p class="heart-tip">点一下，撒把糖</p>
+  <p class="credit">BGM: "Wallpaper" — Kevin MacLeod (incompetech.com) · Licensed under CC BY 4.0</p>
 </footer>
 
 <div class="lightbox" id="lightbox" role="dialog" aria-hidden="true">
@@ -428,6 +491,10 @@
   <img id="lbImg" src="" alt="">
   <p class="lb-cap" id="lbCap"></p>
 </div>
+
+<button class="music-btn" id="musicBtn" aria-label="播放或暂停背景音乐">♫</button>
+<span class="music-tip" id="musicTip">点我，听我们的歌 ♪</span>
+<audio id="bgm" src="music.mp3" loop preload="metadata"></audio>
 
 <script>
   // ---- 飘浮爱心 ----
@@ -479,6 +546,7 @@
     img.addEventListener('click', () => {
       lbImg.src = img.src;
       lbImg.alt = img.alt;
+      lbImg.style.filter = img.style.filter || '';
       lbCap.textContent = img.dataset.cap || '';
       lightbox.classList.add('open');
       lightbox.setAttribute('aria-hidden', 'false');
@@ -493,6 +561,33 @@
   document.getElementById('lbClose').addEventListener('click', closeLb);
   lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLb(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLb(); });
+
+  // ---- 背景音乐 ----
+  const bgm = document.getElementById('bgm');
+  const musicBtn = document.getElementById('musicBtn');
+  const musicTip = document.getElementById('musicTip');
+  bgm.volume = 0.55;
+
+  function setMusicUI() {
+    musicBtn.classList.toggle('playing', !bgm.paused);
+    musicBtn.title = bgm.paused ? '播放背景音乐' : '暂停背景音乐';
+  }
+  musicBtn.addEventListener('click', async e => {
+    e.stopPropagation();
+    try {
+      if (bgm.paused) { await bgm.play(); musicTip.remove(); } else { bgm.pause(); }
+    } catch (err) { /* 浏览器拦截时静默处理 */ }
+    setMusicUI();
+  });
+  // 第一次任意点击/触摸页面时自动响起（浏览器要求用户交互后才允许发声）
+  ['pointerdown', 'keydown', 'touchstart'].forEach(ev => {
+    document.addEventListener(ev, () => {
+      bgm.play().then(() => { if (musicTip.parentNode) musicTip.remove(); }).catch(() => {});
+    }, { once: true });
+  });
+  bgm.addEventListener('play', setMusicUI);
+  bgm.addEventListener('pause', setMusicUI);
+  setMusicUI();
 
   // ---- 滚动入场 ----
   const io = new IntersectionObserver(entries => {
