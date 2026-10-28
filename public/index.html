@@ -159,6 +159,20 @@
   }
   .single-row { display: flex; justify-content: center; }
   .single-row .polaroid { width: min(410px, 88vw); }
+  .grid2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    align-items: start;
+  }
+  .polaroid video {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+    border-radius: 2px;
+    background: #1a1020;
+  }
 
   .polaroid {
     background: var(--paper);
@@ -359,6 +373,8 @@
   @media (max-width: 759px) {
     .grid3 { grid-template-columns: 1fr; gap: 44px; justify-items: center; }
     .grid3 .polaroid { width: min(360px, 92vw); }
+    .grid2 { grid-template-columns: 1fr; justify-items: center; }
+    .grid2 .polaroid { width: min(560px, 92vw); }
     .hero-eyebrow { letter-spacing: .3em; text-indent: .3em; }
     .music-tip { right: auto; left: 50%; transform: translateX(-50%); bottom: 96px; }
   }
@@ -374,10 +390,11 @@
 <header class="hero">
   <p class="hero-eyebrow">LOVE DIARY · 二人份的日常</p>
   <h1>我们的恋爱日常</h1>
-  <p class="hero-sub">泳池 · 干饭 · 散步 · 车窗 · 深夜 —— 都是和你有关的小事</p>
+  <p class="hero-sub">泳池 · 干饭 · 散步 · 深夜 · 小剧场 —— 都是和你有关的小事</p>
   <div class="hero-stats">
     <span class="pill">日常碎片 <b>× 9</b></span>
-    <span class="pill">心动章节 <b>× 5</b></span>
+    <span class="pill">心动章节 <b>× 6</b></span>
+    <span class="pill">专属 MV <b>× 2</b></span>
     <span class="pill">想你次数 <b>∞</b></span>
   </div>
   <div class="heart-divider">❤ ❤ ❤</div>
@@ -472,6 +489,25 @@
       <figure class="polaroid reveal t-night" style="--r:-1.5deg">
         <img src="0defc27de8986e9b191889d79e1a8616.jpg" alt="深夜贴贴自拍" style="filter: brightness(1.5) saturate(1.05);" data-cap="再暗的光，也挡不住想靠近的心 💫">
         <figcaption class="cap">再暗的光，也挡不住想靠近的心 💫</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 章节 6 · 高光小剧场 -->
+  <section class="chapter">
+    <div class="chapter-head reveal">
+      <span class="chapter-num">06</span>
+      <h2>高光小剧场</h2>
+      <p class="chapter-sub">女士专属 MV，全球首映</p>
+    </div>
+    <div class="grid2">
+      <figure class="polaroid reveal t-sun" style="--r:-1.5deg">
+        <video src="gemini_generated_video_8ce7542a.mp4" controls playsinline preload="metadata"></video>
+        <figcaption class="cap">彩虹屁连环发射：璀璨如星，温暖全世界 ✨</figcaption>
+      </figure>
+      <figure class="polaroid reveal t-night" style="--r:1.5deg">
+        <video src="gemini_generated_video_18df5d64.mp4" controls playsinline preload="metadata"></video>
+        <figcaption class="cap">官方认证：魅力与光芒，正在无限循环 💫</figcaption>
       </figure>
     </div>
   </section>
@@ -588,6 +624,22 @@
   bgm.addEventListener('play', setMusicUI);
   bgm.addEventListener('pause', setMusicUI);
   setMusicUI();
+
+  // ---- 视频播放时自动暂停音乐，视频停了音乐接上 ----
+  const videos = document.querySelectorAll('.polaroid video');
+  let bgmWasPlaying = false;
+  videos.forEach(v => {
+    v.addEventListener('play', () => {
+      videos.forEach(o => { if (o !== v) o.pause(); });
+      bgmWasPlaying = !bgm.paused;
+      if (bgmWasPlaying) bgm.pause();
+    });
+    const resumeBgm = () => {
+      if (bgmWasPlaying) { bgm.play().catch(() => {}); bgmWasPlaying = false; }
+    };
+    v.addEventListener('pause', resumeBgm);
+    v.addEventListener('ended', resumeBgm);
+  });
 
   // ---- 滚动入场 ----
   const io = new IntersectionObserver(entries => {
